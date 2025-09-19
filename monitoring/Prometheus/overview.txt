@@ -1,0 +1,36 @@
+Overview
+
+Prometheus is an open-source systems monitoring and alerting tool. 
+
+Prometheus collects and stores its metrics as time series data. In other words, metrics 
+information is stored with the timestamp at which it was recorded, alongside key-value pairs
+called labels.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Features
+
+Prometheus's main features аре:
+    - a multi-dimensional data model with time series data, identified by metric name and
+    optional key-value pairs called labels
+    - PromQL, Prometheus Query Language, that can be used to query the stored metrics
+    - no reliance on distributed storage; single server nodes are autonomous
+    - time series collection happens via a pull model over HTTP
+    - pushing time series is supported via an intermidiary gateway
+    - targets are discovered via service discovery or static configs
+    - multiple modes of graphing and dashboarding support
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Components
+
+The Prometheus ecosystem consists of multiple optional components:
+    - the main Prometheus server, which scrapes and stores time series data
+    - client libraries for instrumenting application code
+    - a push gateway for supporting short-lived jobs
+    - special-purpose exporters for services like HAProxy, StatsD, Graphite and others
+    - an alertmanager for handling alerts
+    - various support tools
+
+Most Prometheus components are written in Go, which makes it easy to build and deploy them as
+static binaries.
