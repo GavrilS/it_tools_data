@@ -1,0 +1,71 @@
+Pushing Metrics To Amazon Managed Prometheus Workspace
+-------------------------------
+
+Prometheus usually ingests metrics by scraping them from the configured endpoints. There is an
+option to push metrics with a tool called Prometheus Pushgateway, where you can configure your
+short-lived jobs to send metrics to the Pushgateway. This works well in situations where you have
+jobs, that might not live long enough to be discovered by Prometheus.
+
+Metrics that are pushed to Prometheus need to be in a Prometheus-compatible format.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pushgateway with a Prometheus server in EKS
+-------------------------------
+
+Based on available data, you can configure a Prometheus server in EKS and setup a Pushgateway. 
+You will push your metrics to the Pushgateway, which will then be scraped by the Prometheus 
+server, and the server will do a remote_write to the AMP workspace, where you want your data
+to be ingested.
+
+From available data it seems that configuring the above is the recommended approach for pushing
+data to an AMP workspace. It might be possible to setup the AMP managed collector to scrape the
+metrics directly from the Pushgateway endpoint, but this needs to be tested.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+AWS serverless Prometheus Push Gateway
+-------------------------------
+
+AWS Serverless Prometheus Push Gateway enables you to push metrics into Prometheus from any 
+source without modifying your application or running an always-on service for Prometheus to 
+scrape. This AWS CDK construct library deploys an AWS Lambda function using the Amazon 
+Distribution for OpenTelemetry (ADOT) extension layer and connects it with an Amazon SQS queue 
+and an Amazon Managed Service for Prometheus (AMP) workspace.
+
+##Lambda event payload:
+
+!Sample-start
+{
+  "dimensions": {
+    "customerId": "customer1"
+  },
+  "timestamp": 1676398017000,
+  "metrics": {
+    "temperature": "14.3",
+    "ph": "6.7"
+  }
+}
+!Sample-end
+
+Properties:
+    - dimensions: Key/value pairs of dimension names and values.
+    - metrics: Key/value pairs of metric names and values.
+    - timestamp: Timestamp in milliseconds since epoch.
+
+##Metric type inference
+
+Metric values can either be integers or floating point numbers. There is a risk that floating 
+point metrics will be interpreted as integers by the JSON parser. To avoid this, we recommend 
+sending metrics as strings to preserve the decimal point.
+
+!Sample-start
+{
+  "metric1": 12.0,
+  "metric2": "12.0"
+}
+!Sample-end
+
+##Caveats
+
+Amazon Managed Prometheus requires metrics for a given combination of labels to arrive in strictly ascending order by timestamp. Anything that arrives late gets rejected and dropped. In practice, as long as events for a given combination are sent on an interval of at most every 10 seconds, out-of-order messages are unlikely.
