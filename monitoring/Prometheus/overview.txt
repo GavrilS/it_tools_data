@@ -1,4 +1,5 @@
 Overview
+-------------------------------
 
 Prometheus is an open-source systems monitoring and alerting tool. 
 
@@ -9,6 +10,7 @@ called labels.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Features
+-------------------------------
 
 Prometheus's main features аре:
     - a multi-dimensional data model with time series data, identified by metric name and
@@ -23,6 +25,7 @@ Prometheus's main features аре:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Components
+-------------------------------
 
 The Prometheus ecosystem consists of multiple optional components:
     - the main Prometheus server, which scrapes and stores time series data

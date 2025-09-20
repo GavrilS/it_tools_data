@@ -1,0 +1,173 @@
+AWS Managed Collector
+-------------------------------
+
+To use an Amazon Managed Service for Prometheus collector, you must create a scraper that 
+discovers and pulls metrics in your Amazon EKS cluster. The scraper collects metrics that are 
+Prometheus compatible.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a scraper
+-------------------------------
+
+There are three ways to create a scraper:
+
+    - It is automatically created when you create an Amazon EKS cluster through the console 
+    and choose to turn Prometheus metrics on.
+    - You can create a scraper from the Amazon EKS console for an existing cluster.
+    - You can create a scraper using either the AWS API or the AWS CLI.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Scraper configuration
+-------------------------------
+
+You can control how the scraper finds and collects metrics with a Prometheus-compatible scraper
+configuration. In the configuration you can fine tune things like how often are specific metrics
+collected, you can use relabeling to dynamically rewrite the labels of a metric. The scraper 
+configuration is a YAML file which is part of the definition of the scraper.
+
+##Supported configuraiton
+
+The complete list of config sections allowed in the scraper include:
+
+    - global
+    - scrape_config
+    - static_config
+    - relabel_config
+    - metric_relabel_config
+    - kubernetes_sd_config
+
+##Sample configuration file
+
+!Sample-start
+global:
+   scrape_interval: 30s
+   external_labels:
+     clusterArn: apiserver-test-2
+scrape_configs:
+  - job_name: pod_exporter
+    kubernetes_sd_configs:
+      - role: pod
+  - job_name: cadvisor
+    scheme: https
+    authorization:
+      type: Bearer
+      credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - replacement: kubernetes.default.svc:443
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+  # apiserver metrics
+  - scheme: https
+    authorization:
+      type: Bearer
+      credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    job_name: kubernetes-apiservers
+    kubernetes_sd_configs:
+    - role: endpoints
+    relabel_configs:
+    - action: keep
+      regex: default;kubernetes;https
+      source_labels:
+      - __meta_kubernetes_namespace
+      - __meta_kubernetes_service_name
+      - __meta_kubernetes_endpoint_port_name
+  # kube proxy metrics
+  - job_name: kube-proxy
+    honor_labels: true
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - action: keep
+      source_labels:
+      - __meta_kubernetes_namespace
+      - __meta_kubernetes_pod_name
+      separator: '/'
+      regex: 'kube-system/kube-proxy.+'
+    - source_labels:
+      - __address__
+      action: replace
+      target_label: __address__
+      regex: (.+?)(\\:\\d+)?
+      replacement: $1:10249
+  # Scheduler metrics
+  - job_name: 'ksh-metrics'
+    kubernetes_sd_configs:
+    - role: endpoints
+    metrics_path: /apis/metrics.eks.amazonaws.com/v1/ksh/container/metrics
+    scheme: https
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+    - source_labels:
+      - __meta_kubernetes_namespace
+      - __meta_kubernetes_service_name
+      - __meta_kubernetes_endpoint_port_name
+      action: keep
+      regex: default;kubernetes;https
+  # Controller Manager metrics
+  - job_name: 'kcm-metrics'
+    kubernetes_sd_configs:
+    - role: endpoints
+    metrics_path: /apis/metrics.eks.amazonaws.com/v1/kcm/container/metrics
+    scheme: https
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+    - source_labels:
+      - __meta_kubernetes_namespace
+      - __meta_kubernetes_service_name
+      - __meta_kubernetes_endpoint_port_name
+      action: keep
+      regex: default;kubernetes;https
+!Sample-end
+
+The following are limitations specific to the AWS managed collectors:
+
+    - Scrape interval - cannot be less than 30 seconds
+    - Targets - Targets in the static_config must be specified as IP addresses
+    - DNS resolution - Related to the target name, the only server name that is recognized in this config is 
+    the Kubernetes api server, kubernetes.default.svc. All other machines names must be specified 
+    by IP address
+    - Authorization - Omit if no authorization is needed. If it is needed, the authorization 
+    must be Bearer, and must point to the file /var/run/secrets/kubernetes.io/serviceaccount/token. 
+    In other words, if used, the authorization section must look like the following:
+
+!Sample-start
+authorization:
+    type: Bearer
+    credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+!Sample-end
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Troubleshooting scraper configuration
+-------------------------------
+
+Amazon Managed Service for Prometheus collectors automatically discover and scrape metrics. 
+But how can you troubleshoot when you don't see a metric you expect to see in your Amazon 
+Managed Service for Prometheus workspace?
+
+The up metric is a helpful tool. For each endpoint that an Amazon Managed Service for Prometheus 
+collector discovers, it automatically sends this metric. There are three states of this metric 
+that can help you to troubleshoot what is happening within the collector:
+
+    - up is not present for the specific endpoint - that means the collector was not able to find
+    the endpoint.
+    If you are sure the endpoint exists, there might be a few reasons why it cannot be found:
+        - You might need to adjust the scrape_config or the discovery relabel_config
+        - There could be a problem with the role used for discovery
+        - The Amazon VPC used by the EKS cluster might not have DNS enabled, which would prevent
+        the endpoint discovery
+    - up is present, but is always 0 - the collector is able to discover the endpoint, but cannot
+    find any Prometheus-compatible metrics.
+    Try to run curl against the endpoint directly and validate the output and that everything is
+    correctly configured, and follows the Prometheus format. Also the body of the response
+    cannot be larger than 50 megabytes. You also cannot have more than 30, 000 /metrics endpoints.
+    - up is present and is greater than 0 - this means the metrics are being sent to Prometheus
