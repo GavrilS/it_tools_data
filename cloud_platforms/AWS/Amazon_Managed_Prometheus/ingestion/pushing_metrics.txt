@@ -69,3 +69,34 @@ sending metrics as strings to preserve the decimal point.
 ##Caveats
 
 Amazon Managed Prometheus requires metrics for a given combination of labels to arrive in strictly ascending order by timestamp. Anything that arrives late gets rejected and dropped. In practice, as long as events for a given combination are sent on an interval of at most every 10 seconds, out-of-order messages are unlikely.
+
+Link: https://github.com/awslabs/aws-serverless-prometheus-push-gateway/blob/main/README.md
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+RemoteWrite
+-------------------------------
+
+The RemoteWrite operation writes metrics from a Prometheus server to a remote URL in a standardized format. Typically, you will use an existing client such as a Prometheus server to call this operation.
+
+Valid HTTP verbs:
+    POST
+
+Valid URLs:
+    /workspaces/workspaceId/api/v1/remove_write
+
+RemoteWrite has an ingestion rate of 70,000 samples per second and ingestion burst size of 1,000,000 samples.
+
+Sample request:
+
+!Sample-start
+POST /workspaces/ws-b226cc2a-a446-46a9-933a-ac50479a5568/api/v1/remote_write --data-binary "@real-dataset.sz" HTTP/1.1
+Authorization: AUTHPARAMS
+X-Amz-Date: 20201201T193725Z
+User-Agent: Prometheus/2.20.1
+Content-Type: application/x-protobuf
+Content-Encoding: snappy
+X-Prometheus-Remote-Write-Version: 0.1.0
+
+body
+!Sample-end
