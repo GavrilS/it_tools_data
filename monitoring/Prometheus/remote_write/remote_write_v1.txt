@@ -1,0 +1,19 @@
+Remote-Write Version 1
+-------------------------------
+
+The remote write specification is intended to document the standard for how Prometheus and Prometheus remote-write-compatible agents send data to a Prometheus or Prometheus remote-write compatible receiver.
+
+The remote write protocol is designed to make it possible to reliably propagate samples in real-time from a sender to a receiver, without loss.
+
+The remote write protocol contains opportunities for batching, e.g. sending multiple samples for different series in a single request. It is not expected that multiple samples for the same series will be commonly sent in the same request, although there is support for this in the protocol.
+
+The remote write protocol is not intended for use by applications to push metrics to Prometheus remote-write-compatible receivers. It is intended that a Prometheus remote-write-compatible sender scrapes instrumented applications or exporters and sends remote write messages to a server.
+
+Some available remote-write senders:
+    1. Prometheus itself
+    2. The Grafana agent
+    3. InfluxData's Telegraf
+    4. The OpenTelemetry Collector
+    5. The VictoriaMetrics Agent (not working on Mac OS X)
+    6. Timber.io Vector
+
