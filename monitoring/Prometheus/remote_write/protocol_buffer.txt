@@ -1,0 +1,45 @@
+Protocol Buffers Overview
+-------------------------------
+
+Protocol buffers are Google's language-neutral, platform-neutral extensible mechanisms for serializing structured data. You define how you want your data to be structured once, then you can use special generated source code to easily write and read to and from a variety of data streams and using a variety of languages. It's like JSON except it's smaller and faster, and it generates native language bindings.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+What problems do Protocol Buffers solve?
+-------------------------------
+
+They are the most commonly used data format in Google. They are used extensively in inner-server communications as well as for archival storage of data on disk. Their messages and services are described in a .proto files.
+
+!Sample-start
+edition = "2023";
+
+message Person {
+  string name = 1;
+  int32 id = 2;
+  string email = 3;
+}
+!Sample-end
+
+The proto compiler is invoked at build time on .proto files to generate code in various programming languages to manipulate the corresponding protocol buffer.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Benefits of using Protocol Buffers
+-------------------------------
+
+Some of the advantages of using Protocol Buffers include:
+
+    - Compact data storage
+    - Fast parsing
+    - Availability in many programming languages
+    - Optimized functionality through automatically-generated classes
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+How do Protocol Buffers work?
+-------------------------------
+
+1. Create a .proto file to define a data structure
+2. Generate code using the protoc compiler
+3. Compile PB code with your project code
+4. Use PB classes to serialize, share, and deserialize data
