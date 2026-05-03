@@ -21,3 +21,8 @@ Azure Functions cover a wide range of scenarios some of which include:
 3. After development is finished you can deploy to Azure using CLI, CI/CD pipelines or your IDE.
 4. You can monitor performance and diagnose issues with built-in Azure Monitor and Application Insights integration.
 
+# Triggers
+
+You can use different Azure services to act as triggers for the Azure Functions you create. Examples include:
+    - Azure Event Hub
+    #TODO add more comprehensive information on services as triggers
