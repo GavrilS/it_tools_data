@@ -7,6 +7,7 @@ resource "random_pet" "rg_name" {
 }
 
 # Create a resource group
+# Resource group terraform documentation - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group
 resource "azurerm_resource_group" "example" {
   location = var.resource_group_location
   name     = random_pet.rg_name.id
@@ -22,6 +23,7 @@ resource "random_string" "name" {
 }
 
 # Create a storage account
+# SA terraform docs - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account
 resource "azurerm_storage_account" "example" {
   name                     = coalesce(var.sa_name, random_string.name.result)
   resource_group_name      = azurerm_resource_group.example.name
@@ -31,6 +33,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 # Create a storage container
+# SC terraform docs - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container
 resource "azurerm_storage_container" "example" {
   name                  = "example-flexcontainer"
   storage_account_id    = azurerm_storage_account.example.id
@@ -38,6 +41,7 @@ resource "azurerm_storage_container" "example" {
 }
 
 # Create a Log Analytics workspace for Application Insights
+# LAW terraform docs - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace
 resource "azurerm_log_analytics_workspace" "example" {
   name                = coalesce(var.ws_name, random_string.name.result)
   location            = azurerm_resource_group.example.location
@@ -47,6 +51,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 # Create an Application Insights instance for monitoring
+# AI terraform docs - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_insights
 resource "azurerm_application_insights" "example" {
   name                = coalesce(var.ai_name, random_string.name.result)
   location            = azurerm_resource_group.example.location
@@ -56,6 +61,7 @@ resource "azurerm_application_insights" "example" {
 }
 
 # Create a service plan
+# SP terraform docs - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan
 resource "azurerm_service_plan" "example" {
   name                = coalesce(var.asp_name, random_string.name.result)
   resource_group_name = azurerm_resource_group.example.name
@@ -65,6 +71,7 @@ resource "azurerm_service_plan" "example" {
 }
 
 # Create a function app
+# FAFC terraform docs - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_flex_consumption
 resource "azurerm_function_app_flex_consumption" "example" {
   name                = coalesce(var.fa_name, random_string.name.result)
   resource_group_name = azurerm_resource_group.example.name
