@@ -1,3 +1,6 @@
+'''
+Start an HTTP server that returns the custom metrics on port 8000.
+'''
 from prometheus_client import start_http_server, Counter
 import time
 
